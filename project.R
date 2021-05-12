@@ -46,11 +46,6 @@ library(leaps)
 library(aplpack)
 #install.packages("Rcmdr")
 #library(Rcmdr)
-#We will use the Regclass package on Rstudio cloud since
-#Rcmdr wont work for some reason- probably to do with the
-#GUI interface support
-#install.packages("regclass")
-library(regclass)
 #install.packages("MASS")
 library(MASS)
 #install.packages("car")
@@ -72,84 +67,10 @@ library(actuar)
 #install.packages("DescTools")
 library(DescTools)
 
+
 #SETTING SEED FOR CONSISTENT RESULTS
 set.seed(2.71828)
 
-#Converting Categorical Variables to Numerical
-
-METABRIC_RNA_Mutation$Numeric_Breast_Surgery_Type <- as.numeric(factor(
-  METABRIC_RNA_Mutation$type_of_breast_surgery,
-  levels = c("MASTECTOMY","BREAST CONSERVING"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Cancer_Type <- as.numeric(factor(
-  METABRIC_RNA_Mutation$cancer_type,
-  levels = c("Breast Cancer","Breast Sarcoma"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Cancer_Type_Detailed <- as.numeric(factor(
-  METABRIC_RNA_Mutation$cancer_type_detailed,
-  levels = c("Breast Invasive Lobular Carcinoma","Breast Invasive Ductal Carcinoma",
-             "Breast Mixed Ductal and Lobular Carcinoma","Breast","Metaplastic Breast Cancer"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Cellularity <- as.numeric(factor(
-  METABRIC_RNA_Mutation$cellularity,
-  levels = c("High","Moderate","Low"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Pam50_Claudin_Low_Subtype <- as.numeric(factor(
-  METABRIC_RNA_Mutation$`pam50_+_claudin-low_subtype`,
-  levels = c("claudin-low","LumA","LumB","Her2","Basal","Normal"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Er_Status_Measured_By_ihc <- as.numeric(factor(
-  METABRIC_RNA_Mutation$er_status_measured_by_ihc,
-  levels = c("Positive","Negative"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Er_Status <- as.numeric(factor(
-  METABRIC_RNA_Mutation$er_status,
-  levels = c("Positive","Negative"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Her2_Status_Measured_By_snp6 <- as.numeric(factor(
-  METABRIC_RNA_Mutation$her2_status_measured_by_snp6,
-  levels = c("NEUTRAL","LOSS","GAIN","UNDEF"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Her2_Status <- as.numeric(factor(
-  METABRIC_RNA_Mutation$her2_status,
-  levels = c("Positive","Negative"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Tumor_Other_Histologic_Subtype <- as.numeric(factor(
-  METABRIC_RNA_Mutation$tumor_other_histologic_subtype,
-  levels = c("Ductal/NST","Mixed","Lobular","Tubular/ cribriform","Mucinous",
-             "Medullary","Other","Metaplastic"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Inferred_Menopausal_State <- as.numeric(factor(
-  METABRIC_RNA_Mutation$inferred_menopausal_state,
-  levels = c("Post","Pre"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Primary_Tumor_Laterality <- as.numeric(factor(
-  METABRIC_RNA_Mutation$primary_tumor_laterality,
-  levels = c("Left","Right"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Oncotree_Code <- as.numeric(factor(
-  METABRIC_RNA_Mutation$oncotree_code,
-  levels = c("IDC","BREAST","IMMC","MDLC","ILC"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Pr_Status <- as.numeric(factor(
-  METABRIC_RNA_Mutation$pr_status,
-  levels = c("Positive","Negative"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_3_Gene_Classifier_Subtype <- as.numeric(factor(
-  METABRIC_RNA_Mutation$`3-gene_classifier_subtype`,
-  levels = c("ER+/HER2- High Prolif","ER-/HER2-","HER+","ER+/HER2- Low Prolif","HER2+"))) - 1
-
-METABRIC_RNA_Mutation$Numeric_Death_from_Cancer <- as.numeric(factor(
-  METABRIC_RNA_Mutation$death_from_cancer,
-  levels = c("Living","Died of Disease","Died of Other Causes"))) - 1
-
-#vif
-#Finds Variance Inflation Factors. For use in Rstudio Cloud
-#since it does not support RCmdr. Function is calling regclass
-#VIF function. Being used to avoid rewriting a lot of code below.
-vif=function(fit){
-  VIF(fit)
-}
 
 #dropvif1:
 #For use in model building section. Takes linear model
@@ -247,6 +168,19 @@ fit4=stepwise(fit2,direction='forward/backward',criterion='BIC',trace='false'); 
 plot(fit4)
 ncvTest(fit4)
 
+#Model 5
+fit5=stepwise(fit2,direction='forward',criterion='BIC',trace='false'); summary(fit5)
+plot(fit5)
+ncvTest(fit5)
+
+#Model 6
+fit6=stepwise(fit2,direction='backward',criterion='BIC',trace='false'); summary(fit6)
+plot(fit6)
+ncvTest(fit5)
+
+temp.train.data=train.data
+
+
 #model 5
 fit5=lm(overall_survival_months~.^2,data=train.data); summary(fit5)
 plot(fit5)
@@ -302,4 +236,5 @@ sse9=sum(test.data$overall_survival_months-fits2)^2
 
 nn.results <- compute(nn, test.data)
 sse10=sum(test.data$overall_survival_months-nn.results$net.result)^2
+
 
