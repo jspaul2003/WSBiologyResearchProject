@@ -88,6 +88,23 @@ dropvif1=function(fit,train.data){
   return(train.data)
 }
 
+#droppval
+#For use in model building section. Takes linear model, 
+#Finds largest P-value. If greater than threshold (default
+#0.05), it drops the relvant variable. Returns data with
+#dropped variable.
+
+droppval=function(fit,train.data,threshold=0.05){
+  pvals=summary(fit)$coefficients[,4]
+  maxpval=which.max(pvals)
+  print(maxpval)
+  if(pvals[maxpval[[1]]]>threshold){
+    print(paste("Dropped",colnames(train.data)[(maxpval[[1]]-1)]))
+    train.data <- subset(train.data, select=-c((maxpval[[1]]-1)))
+  }
+  return(train.data)
+}
+
 #normalize:
 #Normalizes data for neural net models
 normalize=function(x){
@@ -180,6 +197,26 @@ ncvTest(fit5)
 
 temp.train.data=train.data
 
+#model 8
+length=1
+temp.train.data=train.data
+temp.train.data= temp.train.data %>% select(-overall_survival_months, everything())
+fit8=fit2
+while(length!=ncol(temp.train.data)){
+  length=ncol(temp.train.data)
+  temp.train.data=droppval(fit8,temp.train.data)
+  fit8=lm(overall_survival_months~. ,data=temp.train.data)
+}
+
+#model 9
+fit9=lm(overall_survival_months~.^2,data=temp.train.data); summary(fit9)
+plot(fit9)
+ncvTest(fit9)
+
+#model 10
+fit10=stepwise(fit9,direction='forward/backward',criterion='AIC',trace='false'); summary(fit10)
+plot(fit10)
+ncvTest(fit10)
 
 #model 5
 fit5=lm(overall_survival_months~.^2,data=train.data); summary(fit5)
